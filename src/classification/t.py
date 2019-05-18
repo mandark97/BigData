@@ -1,6 +1,9 @@
-from sacred.observers import MongoObserver
-from sacred import Experiment
+import pandas as pd
 from dotenv import load_dotenv
+from sacred import Experiment
+from sacred.observers import MongoObserver
+
+import feature_selection
 
 load_dotenv()
 ex = Experiment()
