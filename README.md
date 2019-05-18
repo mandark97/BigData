@@ -2,14 +2,21 @@
 
 ## Dataset
 
-https://www.imdb.com/interfaces/
+https://www.kaggle.com/uciml/student-alcohol-consumption
 
-## Multilabel classification tool
+## Sacred docker setup
 
-http://scikit.ml/
+### Sacred
 
-## Tutorials
+Sacred is a tool to help you configure, organize, log and reproduce experiments developed at IDSIA.
+https://sacred.readthedocs.io/en/latest/
 
-### Multilabel classification
+The logs are stored in MongoDB.
 
-https://towardsdatascience.com/journey-to-the-center-of-multi-label-classification-384c40229bff
+### Requirements
+
+- [docker](https://www.docker.com/)
+- [docker-compose](https://docs.docker.com/compose/)
+
+Run `docker-compose up --build`
+Open omniboard (`http://localhost:9000`) to see the experiment results
