@@ -3,11 +3,13 @@ from dotenv import load_dotenv
 from sacred import Experiment
 from sacred.observers import MongoObserver
 from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, StandardScaler
-
+import json
 MATH_DATASET = "student-alcohol-consumption/student-mat.csv"
 POR_DATASET = "student-alcohol-consumption/student-mat.csv"
 STUDENTS_DATASET = "student-alcohol-consumption/students.csv"
@@ -41,35 +43,53 @@ def model_config():
     }
 
 
+def numeric_preprocessor():
+    return Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='median')),
+        ('scaler', StandardScaler())])
+
+
+def categorical_preprocessor():
+    return Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+        ('onehot', OneHotEncoder(handle_unknown='ignore'))])
+
+
 @ex.capture
-def preprocessor(categorical_features, numeric_features):
+def preprocessor_transformer(categorical_features, numeric_features):
     return ColumnTransformer(transformers=[
-        ('num', StandardScaler(), numeric_features),
-        ('cat', OneHotEncoder(), categorical_features)
+        ('num', numeric_preprocessor(), numeric_features),
+        ('cat', categorical_preprocessor(), categorical_features)
     ])
 
 
 @ex.capture
 def select_columns(df, categorical_features, numeric_features, label):
-    selected_columns = categorical_features + numeric_features
+    features = categorical_features + numeric_features
 
-    return df[selected_columns], df[label]
+    return df[features], df[label]
 
 
 @ex.automain
 def main(dataset, clf_params):
     df = pd.read_csv(dataset)
     X, y = select_columns(df)
-    # y = LabelBinarizer().fit_transform(y)
     X_train, X_test, y_train, y_test = train_test_split(X, y)
-    preprocess = preprocessor()
 
+    preprocess = preprocessor_transformer()
     clf = Pipeline(steps=[
         ('preprocessor', preprocess),
         ('classifier', LogisticRegression(**clf_params))
     ])
-    clf.fit(X_train, y_train)
 
+    clf.fit(X_train, y_train)
     score = clf.score(X_test, y_test)
     print('score=', score)
     ex.log_scalar('score', score)
+
+    y_pred = clf.predict(X_test)
+    class_report = classification_report(y_test, y_pred, output_dict=True)
+
+    with open("classification_report.json", "w") as f:
+        json.dump(class_report, f)
+    ex.add_artifact("classification_report.json")
