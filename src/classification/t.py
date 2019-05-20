@@ -1,3 +1,6 @@
+import json
+
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from sacred import Experiment
@@ -6,10 +9,10 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, StandardScaler
-import json
+
 MATH_DATASET = "student-alcohol-consumption/student-mat.csv"
 POR_DATASET = "student-alcohol-consumption/student-mat.csv"
 STUDENTS_DATASET = "student-alcohol-consumption/students.csv"
@@ -37,9 +40,12 @@ def preproces_config():
 @ex.config
 def model_config():
     clf_params = {
-        "solver": "lbfgs",
-        "n_jobs": -1,
-        "verbose": 2,
+        "classifier__C": np.arange(0.1, 1),
+        "classifier__tol": [1e-4, 1e-2, 1e-3, 1e-5],
+        "classifier__solver": ["lbfgs", "liblinear"],
+        "classifier__n_jobs": [-1],
+        "classifier__verbose": [2],
+        "classifier__multi_class": ["auto"]
     }
 
 
@@ -56,7 +62,7 @@ def categorical_preprocessor():
 
 
 @ex.capture
-def preprocessor_transformer(categorical_features, numeric_features):
+def preprocessor_transformer(categorical_features=[], numeric_features=[]):
     return ColumnTransformer(transformers=[
         ('num', numeric_preprocessor(), numeric_features),
         ('cat', categorical_preprocessor(), categorical_features)
@@ -64,10 +70,16 @@ def preprocessor_transformer(categorical_features, numeric_features):
 
 
 @ex.capture
-def select_columns(df, categorical_features, numeric_features, label):
+def select_columns(df, categorical_features=[], numeric_features=[], label=[]):
     features = categorical_features + numeric_features
 
     return df[features], df[label]
+
+
+def store_dict(data, name):
+    with open(f"{name}.json", "w") as f:
+        json.dump(data, f)
+    ex.add_artifact(f"{name}.json")
 
 
 @ex.automain
@@ -79,17 +91,29 @@ def main(dataset, clf_params):
     preprocess = preprocessor_transformer()
     clf = Pipeline(steps=[
         ('preprocessor', preprocess),
-        ('classifier', LogisticRegression(**clf_params))
+        ('classifier', LogisticRegression())
     ])
+    grid = GridSearchCV(clf,
+                        clf_params,
+                        n_jobs=-1,
+                        cv=5,
+                        verbose=2,
+                        return_train_score=True,
+                        refit=True)
 
-    clf.fit(X_train, y_train)
-    score = clf.score(X_test, y_test)
+    grid.fit(X_train, y_train)
+    score = grid.score(X_test, y_test)
+
     print('score=', score)
     ex.log_scalar('score', score)
+    ex.log_scalar('best_score', grid.best_score_)
 
-    y_pred = clf.predict(X_test)
+    y_pred = grid.predict(X_test)
     class_report = classification_report(y_test, y_pred, output_dict=True)
 
-    with open("classification_report.json", "w") as f:
-        json.dump(class_report, f)
-    ex.add_artifact("classification_report.json")
+    store_dict(class_report, "classification_report")
+    store_dict(grid.best_params_, "best_params")
+
+    results = pd.DataFrame(grid.cv_results_)
+    results.to_csv("cv_results.csv")
+    ex.add_artifact("cv_results.csv")
