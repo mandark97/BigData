@@ -1,5 +1,6 @@
 import json
 
+from sklearn.externals import joblib
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
@@ -7,7 +8,7 @@ from sacred import Experiment
 from sacred.observers import MongoObserver
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
@@ -20,8 +21,9 @@ STUDENTS_DATASET = "student-alcohol-consumption/students.csv"
 load_dotenv()
 ex = Experiment()
 
+# if ran from the container the url is "mongodb://mongo:27017"
 ex.observers.append(MongoObserver.create(
-    url="mongodb://mongo_user:mongo_password@localhost:27017/?authSource=admin",
+    url="mongodb://localhost:27017",
     db_name="sacred"
 ))
 
@@ -40,12 +42,8 @@ def preproces_config():
 @ex.config
 def model_config():
     clf_params = {
-        "classifier__C": np.arange(0.1, 1),
-        "classifier__tol": [1e-4, 1e-2, 1e-3, 1e-5],
-        "classifier__solver": ["lbfgs", "liblinear"],
+        "classifier__n_estimators": list(np.arange(50, 1000, 50)),
         "classifier__n_jobs": [-1],
-        "classifier__verbose": [2],
-        "classifier__multi_class": ["auto"]
     }
 
 
@@ -91,7 +89,7 @@ def main(dataset, clf_params):
     preprocess = preprocessor_transformer()
     clf = Pipeline(steps=[
         ('preprocessor', preprocess),
-        ('classifier', LogisticRegression())
+        ('classifier', RandomForestClassifier())
     ])
     grid = GridSearchCV(clf,
                         clf_params,
@@ -117,3 +115,6 @@ def main(dataset, clf_params):
     results = pd.DataFrame(grid.cv_results_)
     results.to_csv("cv_results.csv")
     ex.add_artifact("cv_results.csv")
+
+    joblib.dump(grid.best_estimator_, "model.joblib")
+    ex.add_artifact("model.joblib")
