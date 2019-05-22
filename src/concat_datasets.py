@@ -9,4 +9,4 @@ math['course'] = 'math'
 por['course'] = 'por'
 
 result = pd.concat([math, por])
-result.to_csv("student-alcohol-consumption/students.csv", index_label=False)
+result.to_csv("student-alcohol-consumption/students.csv", index=False)
