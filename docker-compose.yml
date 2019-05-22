@@ -3,6 +3,7 @@ version: '3'
 services:
   mongo:
     image: mongo
+    container_name: big_data_mongo
     ports:
       - 127.0.0.1:27017:27017
     restart: unless-stopped
@@ -31,6 +32,7 @@ services:
       - mongo
 
   develop:
+    container_name: big_data_develop
     build:
       context: .
     restart: unless-stopped

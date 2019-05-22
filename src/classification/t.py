@@ -1,4 +1,5 @@
 import json
+import os
 
 from sklearn.externals import joblib
 import numpy as np
@@ -15,7 +16,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, StandardScaler
 
 MATH_DATASET = "student-alcohol-consumption/student-mat.csv"
-POR_DATASET = "student-alcohol-consumption/student-mat.csv"
+POR_DATASET = "student-alcohol-consumption/student-por.csv"
 STUDENTS_DATASET = "student-alcohol-consumption/students.csv"
 
 load_dotenv()
@@ -75,9 +76,9 @@ def select_columns(df, categorical_features=[], numeric_features=[], label=[]):
 
 
 def store_dict(data, name):
-    with open(f"{name}.json", "w") as f:
+    with open(f"metrics/{name}.json", "w") as f:
         json.dump(data, f)
-    ex.add_artifact(f"{name}.json")
+    ex.add_artifact(f"metrics/{name}.json")
 
 
 @ex.automain
@@ -109,12 +110,13 @@ def main(dataset, clf_params):
     y_pred = grid.predict(X_test)
     class_report = classification_report(y_test, y_pred, output_dict=True)
 
+    os.makedirs("metrics", exist_ok=True)
     store_dict(class_report, "classification_report")
     store_dict(grid.best_params_, "best_params")
 
     results = pd.DataFrame(grid.cv_results_)
-    results.to_csv("cv_results.csv")
-    ex.add_artifact("cv_results.csv")
+    results.to_csv("metrics/cv_results.csv")
+    ex.add_artifact("metrics/cv_results.csv")
 
-    joblib.dump(grid.best_estimator_, "model.joblib")
-    ex.add_artifact("model.joblib")
+    joblib.dump(grid.best_estimator_, "metrics/model.joblib")
+    ex.add_artifact("metrics/model.joblib")

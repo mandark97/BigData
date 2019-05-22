@@ -20,3 +20,23 @@ The logs are stored in MongoDB.
 
 Run `docker-compose up --build`
 Open omniboard (`http://localhost:9000`) to see the experiment results
+
+## Mongo db dump/restore
+
+### Dump
+
+To dump mongodb to a file use
+
+`docker exec big_data_mongo sh -c 'exec mongodump -d sacred --archive' > dump.archive`
+
+### Restore
+
+To restore the data from the dump file you have to:
+
+- copy the archive in the container
+
+`docker cp dump.archive big_data_mongo:/`
+
+- run mongorestore
+
+`docker exec big_data_mongo sh -c 'exec mongorestore -d sacred --archive=dump.archive'`
