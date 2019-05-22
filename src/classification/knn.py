@@ -1,17 +1,16 @@
 import json
 import os
 
-from sklearn.externals import joblib
 import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
 from sacred import Experiment
 from sacred.observers import MongoObserver
 from sklearn.compose import ColumnTransformer
+from sklearn.externals import joblib
 from sklearn.impute import SimpleImputer
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, StandardScaler
 
@@ -19,8 +18,7 @@ MATH_DATASET = "student-alcohol-consumption/student-mat.csv"
 POR_DATASET = "student-alcohol-consumption/student-por.csv"
 STUDENTS_DATASET = "student-alcohol-consumption/students.csv"
 
-load_dotenv()
-ex = Experiment()
+ex = Experiment("knn")
 
 # if ran from the container the url is "mongodb://mongo:27017"
 ex.observers.append(MongoObserver.create(
@@ -43,7 +41,9 @@ def preproces_config():
 @ex.config
 def model_config():
     clf_params = {
-        "classifier__n_estimators": list(np.arange(50, 1000, 50)),
+        "classifier__n_neighbors": list(np.arange(5, 20, 1)),
+        "classifier__leaf_size": list(np.arange(20, 100, 5)),
+        "classifier__p": [1, 2, 3],
         "classifier__n_jobs": [-1],
     }
 
@@ -90,7 +90,7 @@ def main(dataset, clf_params):
     preprocess = preprocessor_transformer()
     clf = Pipeline(steps=[
         ('preprocessor', preprocess),
-        ('classifier', RandomForestClassifier())
+        ('classifier', KNeighborsClassifier())
     ])
     grid = GridSearchCV(clf,
                         clf_params,
