@@ -25,25 +25,15 @@ ex.observers.append(MongoObserver.create(
     url="mongodb://localhost:27017",
     db_name="sacred"
 ))
-
-
-@ex.config
-def preproces_config():
-    dataset = POR_DATASET
-    categorical_features = ['school', 'sex', 'address', 'famsize', 'Pstatus', 'Medu', 'Fedu',
-                            'Mjob', 'Fjob', 'reason', 'guardian', 'traveltime', 'studytime',
-                            'failures', 'schoolsup', 'famsup', 'paid', 'activities', 'nursery',
-                            'higher', 'internet', 'romantic', 'famrel', 'freetime', 'goout', 'health']
-    numeric_features = ['age', 'absences', 'G1', 'G2', 'G3']
-    label = 'Dalc'
+ex.add_config("src/classification/config.json")
 
 
 @ex.config
 def model_config():
     clf_params = {
-        "classifier__n_neighbors": list(np.arange(5, 20, 1)),
-        "classifier__leaf_size": list(np.arange(20, 100, 5)),
-        "classifier__p": [1, 2, 3],
+        "classifier__n_neighbors": list(np.arange(4, 20, 2)),
+        "classifier__leaf_size": list(np.arange(5, 50, 5)),
+        "classifier__p": [2, 3],
         "classifier__n_jobs": [-1],
     }
 

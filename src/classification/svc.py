@@ -25,17 +25,7 @@ ex.observers.append(MongoObserver.create(
     url="mongodb://localhost:27017",
     db_name="sacred"
 ))
-
-
-@ex.config
-def preproces_config():
-    dataset = POR_DATASET
-    categorical_features = ['school', 'sex', 'address', 'famsize', 'Pstatus', 'Medu', 'Fedu',
-                            'Mjob', 'Fjob', 'reason', 'guardian', 'traveltime', 'studytime',
-                            'failures', 'schoolsup', 'famsup', 'paid', 'activities', 'nursery',
-                            'higher', 'internet', 'romantic', 'famrel', 'freetime', 'goout', 'health']
-    numeric_features = ['age', 'absences', 'G1', 'G2', 'G3']
-    label = 'Dalc'
+ex.add_config("src/classification/config.json")
 
 
 @ex.config
