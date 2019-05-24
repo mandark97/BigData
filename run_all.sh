@@ -1,4 +1,5 @@
-python src/classification/knn.py
-python src/classification/logistic_regression.py
-python src/classification/random_forest.py
-python src/classification/svc.py
+cd classification
+python knn.py
+python logistic_regression.py
+python random_forest.py
+python svc.py
