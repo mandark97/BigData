@@ -61,7 +61,7 @@ def runs_list():
         runs_arr.append(run_h)
 
     test = pd.DataFrame.from_dict(runs_arr)
-    test.to_csv("experiments_report.csv", index=False)
+    test.to_csv("classification/results/experiments_report.csv", index=False)
 
 
 def slice_dict(dict, keys):
@@ -71,22 +71,13 @@ def slice_dict(dict, keys):
 def uniq_configs():
     runs_arr = []
     for run in runs.aggregate(query):
-        # run_h = {}
-        # for artifact in run['artifacts']:
-        #     if artifact['name'] not in ['best_params.json']:
-        #         continue
-
-        #     run_h[artifact['name'][:-5]] = json.load(
-        #         gfs.get(artifact['file_id']))
-
-        # run_h['model'] = run['experiment']['name']
-
         runs_arr.append(slice_dict(
-            run['config'], ['categorical_features', 'numeric_features', 'label', 'dataset']))
+            run['config'], ['categorical_features', 'numeric_features']))
 
     df = pd.DataFrame.from_dict(runs_arr)
     df = df.iloc[df.astype(str).drop_duplicates().index]
-    df.to_csv("unique_configs.csv", index=False)
+    df.to_csv("classification/results/unique_configs.csv", index=False)
+    df.to_json("classification/results/unique_configs.json", orient='records')
 
 
 def best_params_per_config():
@@ -109,11 +100,14 @@ def best_params_per_config():
         runs_arr.append(run_h)
 
     df = pd.DataFrame.from_dict(runs_arr).sort_values(by=['score'])
-    df[['model', 'score', 'label', 'numeric_features', 'categorical_features', 'dataset']].astype(str)\
+    df[['model', 'score', 'best_params', 'label', 'numeric_features', 'categorical_features', 'dataset']]\
+        .astype(str)\
         .drop_duplicates(subset=['categorical_features', 'numeric_features', 'label', 'dataset', 'model', 'score'])\
         .sort_values(['categorical_features', 'numeric_features', 'label', 'score', 'model'], ascending=[True, True, True, False, True])\
-        .to_csv("best_params_per_config.csv", index=False)
+        .to_csv("classification/results/best_params_per_config.csv", index=False)
 
 
 if __name__ == "__main__":
+    runs_list()
+    uniq_configs()
     best_params_per_config()
