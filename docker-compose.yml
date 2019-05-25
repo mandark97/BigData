@@ -3,6 +3,7 @@ version: '3'
 services:
   mongo:
     image: mongo
+    container_name: big_data_mongo
     ports:
       - 127.0.0.1:27017:27017
     restart: unless-stopped
@@ -11,18 +12,18 @@ services:
   mongo-express:
     image: mongo-express
     ports:
-      - 127.0.0.1:8081:8081
+      - 127.0.0.1:8082:8081
     restart: unless-stopped
     env_file: .env
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
-      ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+    # environment:
+    #   ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
+    #   ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
     depends_on:
       - mongo
 
   omniboard:
     image: vivekratnavel/omniboard:latest
-    command: ["--mu", "mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@mongo:27017/$MONGO_DATABASE?authSource=admin"]
+    command: ["--mu", "mongodb://mongo:27017/$MONGO_DATABASE"]
     ports:
       - 127.0.0.1:9000:9000
     restart: unless-stopped
@@ -31,6 +32,7 @@ services:
       - mongo
 
   develop:
+    container_name: big_data_develop
     build:
       context: .
     restart: unless-stopped
