@@ -83,6 +83,7 @@ dependencies:
     - jupyter-core==4.4.0
     - markupsafe==1.1.1
     - mistune==0.8.4
+    - more-itertools==7.0.0
     - msgpack==0.6.1
     - munch==2.3.2
     - nbconvert==5.5.0
@@ -115,4 +116,4 @@ dependencies:
     - webencodings==0.5.1
     - werkzeug==0.15.4
     - widgetsnbextension==3.4.2
-    - wrapt==1.11.1
+    - yellowbrick==0.9.1
