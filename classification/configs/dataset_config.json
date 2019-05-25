@@ -1,6 +1,6 @@
 {
   "categorical_features": ["school", "sex", "address", "famsize", "Pstatus", "Medu", "Fedu", "Mjob", "Fjob", "reason", "guardian", "traveltime", "studytime", "failures", "schoolsup", "famsup", "paid", "activities", "nursery", "higher", "internet", "romantic", "famrel", "freetime", "goout", "health"],
-  "dataset": "../student-alcohol-consumption\/student-por.csv",
+  "dataset": "../student-alcohol-consumption\/students.csv",
   "label": "Dalc",
   "numeric_features": ["age", "absences", "G1", "G2", "G3"]
 }
