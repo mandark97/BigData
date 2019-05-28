@@ -82,6 +82,7 @@ dependencies:
     - jupyter-console==6.0.0
     - jupyter-core==4.4.0
     - markupsafe==1.1.1
+    - missingno==0.4.1
     - mistune==0.8.4
     - more-itertools==7.0.0
     - msgpack==0.6.1
@@ -107,6 +108,7 @@ dependencies:
     - qtconsole==4.4.4
     - sacred==0.7.4
     - sacredboard==0.4.2
+    - seaborn==0.9.0
     - send2trash==1.5.0
     - simplejson==3.16.0
     - terminado==0.8.2
