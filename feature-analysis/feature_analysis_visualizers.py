@@ -282,6 +282,13 @@ for i in range(0,2):
         for k in range(1,6):
             sns.kdeplot(students_df[students_df[students_group[i]] == k][selected_features[j]], color=colors[k-1])
         axes[i][j].legend(legends[i])
+        plt.title(selected_features[j])
+        
+        if j == 0:
+            plt.ylabel('Students')
+        
+        if j == 1:
+            plt.xlabel(students_group[i])
         
 plt.show()
 
